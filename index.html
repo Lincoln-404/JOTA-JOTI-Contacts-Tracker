@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>JOTI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href='https://fonts.googleapis.com/css?family=Amaranth' rel='stylesheet'>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle, rgb(22, 159, 79), rgb(119, 190, 78));
+            color: rgb(33, 37, 41);
+            font-family: 'Amaranth', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            font-size: 3rem;
+            font-weight: bolder;
+        }
+        td, th, select, input {
+            background-color: transparent !important;
+            border-color: black !important;
+        }
+        span a, span a:hover {
+            color: #392E37 !important;
+        }
+        /* Settings Menu Styles */
+        .settings-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 1050;
+            color: rgb(33, 37, 41);
+            transition: transform 0.3s ease;
+        }
+        .settings-icon:hover {
+            transform: rotate(45deg);
+        }
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+            overflow-y: auto;
+        }
+        .settings-content {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .settings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        .settings-close {
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: transform 0.2s ease;
+        }
+        .settings-close:hover {
+            transform: scale(1.2);
+        }
+        .settings-body {
+            padding: 30px;
+        }
+        .settings-category {
+            margin-bottom: 30px;
+        }
+        .settings-category h3 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .setting-item label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .setting-item select, .setting-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        .setting-item select:focus, .setting-item input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .setting-description {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        .gradient-preview {
+            height: 30px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 2px solid #ddd;
+        }
+        /* Font Size Options */
+        body.font-small {
+            font-size: 0.85rem;
+        }
+        body.font-small h1 {
+            font-size: 2.5rem;
+        }
+        body.font-large {
+            font-size: 1.15rem;
+        }
+        body.font-large h1 {
+            font-size: 3.5rem;
+        }
+        body.font-xlarge {
+            font-size: 1.3rem;
+        }
+        body.font-xlarge h1 {
+            font-size: 4rem;
+        }
+        /* High Contrast Mode */
+        body.high-contrast {
+            filter: contrast(1.5);
+        }
+        body.high-contrast .btn-outline-dark {
+            border-width: 2px;
+            font-weight: bold;
+        }
+
+        /* Minimal UI polish */
+        #map, #pie {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.20);
+        }
+        #countryTable, #log, #scouterTable {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        #countryTable thead, #log thead, #scouterTable thead {
+            background: rgba(255, 255, 255, 0.85);
+        }
+        .btn-group .btn-outline-dark.active,
+        .btn-group .btn-outline-dark:hover {
+            background: rgba(33, 37, 41, 0.10);
+            color: #212529;
+        }
+
+        /* Align settings look with theme */
+        .settings-content {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .settings-header {
+            background: linear-gradient(135deg, #2E7D32 0%, #66BB6A 100%);
+            color: #ffffff;
+        }
+
+        /* Branding blocks */
+        .branding-left {
+            position: fixed;
+            top: 16px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1050;
+        }
+        .branding-right {
+            position: fixed;
+            top: 16px;
+            right: 64px; /* leave space for settings icon */
+            display: flex;
+            align-items: center;
+            z-index: 1049;
+            pointer-events: none; /* keep settings icon fully clickable */
+        }
+        .brand-logo {
+            height: 120px;
+            width: auto;
+            display: inline-block;
+            object-fit: contain;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+        }
+        .brand-title {
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        }
+        /* Title/badge alignment and sizing */
+        :root { --title-badge-height: 1.8em; }
+        .brand-title img { height: 1em; width: auto; display: inline-block; vertical-align: -0.2em; }
+        #title img.title-badge { height: var(--title-badge-height) !important; width: auto; display: inline-block; vertical-align: -0.15em; }
+        .title-inline { display: inline-flex; align-items: baseline; gap: 0.5rem; }
+        .badge-2025 {
+            display: inline-block;
+            padding: 2px 8px;
+            margin-right: 0px;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            font-weight: 800;
+            color: #ffffff;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            border-radius: 999px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Pin map controls */
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .map-controls label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .map-controls select { width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        /* Custom marker cluster styles */
+        .marker-cluster-small { background-color: rgba(110, 204, 57, 0.6); }
+        .marker-cluster-small div { background-color: rgba(110, 204, 57, 0.8); }
+        .marker-cluster-medium { background-color: rgba(241, 211, 87, 0.6); }
+        .marker-cluster-medium div { background-color: rgba(241, 211, 87, 0.8); }
+        .marker-cluster-large { background-color: rgba(253, 156, 115, 0.6); }
+        .marker-cluster-large div { background-color: rgba(253, 156, 115, 0.8); }
+
+        @media (max-width: 768px) {
+            .brand-logo { height: 22px; }
+            .brand-title { font-size: 0.9rem; }
+            .badge-2025 { font-size: 0.65rem; padding: 1px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Settings Icon -->
+    <div class="settings-icon" id="settingsIcon">
+        <i class="bi bi-gear-fill"></i>
+    </div>
+
+    <!-- Branding -->
+    <div class="branding-left" id="branding-left"> 
+        <img src="Assets/JOTAJOTI logo_RGB_JJ_logo-stacked.png" alt="JOTA-JOTI" class="brand-logo">
+    </div>
+    <div class="branding-right" id="branding-right">
+        <img src="Assets/Scouts-Australia.jpg" alt="Scouts Australia" class="brand-logo">
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2><i class="bi bi-gear-fill"></i> Settings</h2>
+                <span class="settings-close" id="settingsClose">&times;</span>
+            </div>
+            <div class="settings-body">
+                <!-- Function Category -->
+                <div class="settings-category">
+                    <h3><i class="bi bi-sliders"></i> Function</h3>
+                    <div class="setting-item">
+                        <label for="autoRefresh">Auto-refresh Charts</label>
+                        <select id="autoRefresh" class="form-select">
+                            <option value="off">Off</option>
+                            <option value="30">Every 30 seconds</option>
+                            <option value="60" selected>Every 60 seconds</option>
+                            <option value="120">Every 2 minutes</option>
+                        </select>
+                        <div class="setting-description">Automatically refresh the map and charts at regular intervals</div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="markerStyle">Map Marker Style</label>
+                        <select id="markerStyle" class="form-select">
+                            <option value="pins">Pins</option>
+                            <option value="circles">Circles with numbers</option>
+                        </select>
+                        <div class="setting-description">Choose how map points are rendered</div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="basemapLanguage">Map Label Language</label>
+                        <select id="basemapLanguage" class="form-select">
+                            <option value="local">Local names/script</option>
+                            <option value="english">English</option>
+                        </select>
+                        <div class="setting-description">Switch the base map labels between local names and English</div>
+                    </div>
+                </div>
+
+                <!-- Debug/Developer Category -->
+                <div class="settings-category">
+                    <h3><i class="bi bi-bug-fill"></i> Debug</h3>
+                    <div class="setting-item">
+                        <label>Data Utilities</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-outline-dark" type="button" id="seedBtn" title="Insert sample contacts">Seed Test Data</button>
+                            <button class="btn btn-outline-danger" type="button" id="clearBtn" title="Clear all contacts">Clear Data</button>
+                        </div>
+                        <div class="setting-description">Use only for testing and debugging; this affects stored data on this device/browser</div>
+                    </div>
+                </div>
+
+                <!-- Visuals Category -->
+                <div class="settings-category">
+                    <h3><i class="bi bi-palette-fill"></i> Visuals</h3>
+                    
+                    <div class="setting-item">
+                        <label for="mapGradient">Map Gradient Theme</label>
+                        <select id="mapGradient" class="form-select">
+                            <option value="green">Green Scout Theme</option>
+                            <option value="blue">Cool Blues</option>
+                            <option value="sunset">Warm Sunset</option>
+                            <option value="purple">Purple Royalty</option>
+                            <option value="teal">Teal/Turquoise</option>
+                            <option value="fire">Fire/Heat Map</option>
+                            <option value="gray">Monochrome Gray</option>
+                            <option value="original">Original (Peach/Orange)</option>
+                        </select>
+                        <div class="gradient-preview" id="gradientPreview"></div>
+                        <div class="setting-description">Choose the color gradient for countries with contacts</div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="backgroundTheme">Background Theme</label>
+                        <select id="backgroundTheme" class="form-select">
+                            <option value="green">Scout Green (Default)</option>
+                            <option value="blue">Ocean Blue</option>
+                            <option value="purple">Purple Haze</option>
+                            <option value="sunset">Sunset Orange</option>
+                            <option value="forest">Forest Green</option>
+                            <option value="night">Night Sky</option>
+                            <option value="autumn">Autumn</option>
+                        </select>
+                        <div class="setting-description">Change the background color theme</div>
+                    </div>
+                </div>
+
+                <!-- Accessibility Category -->
+                <div class="settings-category">
+                    <h3><i class="bi bi-universal-access"></i> Accessibility</h3>
+                    
+                    <div class="setting-item">
+                        <label for="fontSize">Font Size</label>
+                        <select id="fontSize" class="form-select">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium (Default)</option>
+                            <option value="large">Large</option>
+                            <option value="xlarge">Extra Large</option>
+                        </select>
+                        <div class="setting-description">Adjust text size for better readability</div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="highContrast">High Contrast Mode</label>
+                        <select id="highContrast" class="form-select">
+                            <option value="off" selected>Off</option>
+                            <option value="on">On</option>
+                        </select>
+                        <div class="setting-description">Increase contrast for better visibility</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container d-flex align-items-center" style="height: 15vh; overflow: hidden;">        
+        <div class="col-12 text-center">
+            <h1 class="mb-2" id="title"></h1>
+            <div class="btn-group btn-group-sm d-inline-flex justify-content-center rounded">
+                <a href="#" class="btn btn-sm btn-outline-dark px-4 flex-fill active" id="mapBtn">Map</a>
+                <a href="#" class="btn btn-sm btn-outline-dark px-4 flex-fill" id="pinMapBtn">Pin Map</a>
+                <a href="#" class="btn btn-sm btn-outline-dark px-4 flex-fill" id="pieBtn">Pie</a>
+                <a href="#" class="btn btn-sm btn-outline-dark px-4 flex-fill" id="logBtn">Log</a>
+            </div>
+        </div>
+    </div>
+    <div class="container d-flex justify-content-between align-items-center" style="height: 70vh; overflow: hidden;">
+        <div id="map" style="height: 70vh; overflow: hidden; width: 75%; background-color: #0D9CCE; border-radius: 3rem;" class="py-2"></div>
+        <div id="pinMap" style="height: 70vh; overflow: hidden; width: 75%; background-color: #0D9CCE; border-radius: 3rem; display: none; position: relative;" class="py-2"></div>
+        <div id="pie" style="height: 70vh; overflow: hidden; width: 75%; display: none;" class="py-2"></div>
+        <table id="countryTable" class="table table-sm table-hover px-2" style="width: 20%;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Country</th>
+                    <th>Contacts</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="logContainer" style="width: 60%; display: none; max-height: 70vh; overflow-y: auto;">
+            <table id="log" class="table table-sm table-hover px-2">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Scouter</th>
+                        <th>Location</th>
+                        <th>Country</th>
+                        <th>Contact</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <table id="scouterTable" class="table table-sm table-hover px-2 overflow-scroll" style="width: 35%; display: none;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Scouter</th>
+                    <th>Contacts</th>
+                    <th>Countries</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="container d-flex flex-column align-items-center justift-content-between" style="height: 15vh; overflow: hidden;">
+        <div class="p-3 pt-4">
+            <div class="input-group">
+                <span class="input-group-text bg-dark text-white border-dark">Scouter</span>
+                <select id="scouterSelect" class="form-select" aria-label="Scouter">
+                    <option selected disabled>Monty Wombat...</option>
+                </select>
+                <span class="input-group-text bg-dark text-white border-dark">Contact</span>
+                <input id="contactInput" type="text" class="form-control" placeholder="John Doe" aria-label="Contact">
+                <span class="input-group-text bg-dark text-white border-dark">Location</span>
+                <div class="position-relative flex-grow-1">
+                    <input id="locationInput" type="text" class="form-control" placeholder="Sydney, NSW, Australia" aria-label="Location" autocomplete="off">
+                    <div id="locationSuggestions" class="list-group position-absolute w-100 bg-white border border-dark border-top-0" style="z-index: 1050; display: none; max-height: 240px; overflow-y: auto;"></div>
+                </div>
+                <button class="btn btn-dark" type="button" id="goBtn">Go</button>
+            </div>
+        </div>
+        <span>JOTA/JOTI: <a href="https://jotajoti.info" target="_blank">jotajoti.info</a> &nbsp;&nbsp;&nbsp; ScoutLink: <a href="https://webchat.scoutlink.net" target="_blank">scoutlink.net</a> &nbsp;&nbsp;&nbsp; Minecraft: <a href="https://scoutlink.net/minecraft" target="_blank">minecraft.scoutlink.net</a></span>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?v=1" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js?v=1"></script>
+    <script src="https://unpkg.com/dexie/dist/dexie.js?v=1"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script type="text/javascript">
+        $(document).ready(async function() {
+            let year = new Date().getFullYear();
+            $('#title').html('<img src="Assets/JOTA JOTI Badge 2025.png" alt="JOTA-JOTI 2025" class="title-badge"> JOTI ' + year);
+
+            const scouters = [
+                {name: "Alana"},
+                {name: "Braxton"},
+                {name: "Calum"},
+                {name: "Cody"},
+                {name: "David"},
+                {name: "Harry"},
+                {name: "Jacinda"},
+                {name: "Johnathon"},
+                {name: "Jude"},
+                {name: "Kian"},
+                {name: "Lincoln"},
+                {name: "Lorraine"},
+                {name: "Louise"},
+                {name: "Matthew"},
+                {name: "Michael"},
+                {name: "Seb"},
+                {name: "Tristan"},
+                {name: "Will B"},
+                {name: "William D"}
+            ];
+            const countries = [
+                { name: "Afghanistan" },
+                //{ name: "Aland Islands" },
+                { name: "Albania" },
+                { name: "Algeria" },
+                { name: "American Samoa" },
+                //{ name: "Andorra" }, Scouting Dormant
+                { name: "Angola" },
+                { name: "Anguilla" },
+                //{ name: "Antarctica" },
+                { name: "Antigua and Barbuda" },
+                { name: "Argentina" },
+                { name: "Armenia" },
+                { name: "Aruba" },
+                { name: "Australia" },
+                { name: "Austria" },
+                { name: "Azerbaijan" },
+                { name: "Bahamas" },
+                { name: "Bahrain" },
+                { name: "Bangladesh" },
+                { name: "Barbados" },
+                { name: "Belarus" },
+                { name: "Belgium" },
+                { name: "Belize" },
+                { name: "Benin" },
+                { name: "Bermuda" },
+                { name: "Bhutan" },
+                { name: "Bolivia" },
+                { name: "Bosnia and Herzegovina" },
+                { name: "Botswana" },
+                //{ name: "Bouvet Island" },
+                { name: "Brazil" },
+                //{ name: "British Indian Ocean Territory" },
+                { name: "Brunei" },
+                { name: "Bulgaria" },
+                { name: "Burkina Faso" },
+                { name: "Burundi" },
+                { name: "Cambodia" },
+                { name: "Cameroon" },
+                { name: "Canada" },
+                { name: "Cape Verde" },
+                { name: "Cayman Islands" },
+                { name: "Central African Republic" },
+                { name: "Chad" },
+                { name: "Chile" },
+                //{ name: "China" }, Scouting Banned
+                { name: "Christmas Island" },
+                { name: "Cocos (Keeling) Islands" },
+                { name: "Colombia" },
+                { name: "Comoros" },
+                { name: "Congo" },
+                { name: "Congo, The Democratic Republic of the" },
+                { name: "Cook Islands" },
+                { name: "Costa Rica" },
+                { name: "Ivory Coast" },
+                { name: "Croatia" },
+                //{ name: "Cuba" }, Scouting Banned
+                { name: "Cyprus" },
+                { name: "Czech Republic" },
+                { name: "Denmark" },
+                { name: "Djibouti" },
+                { name: "Dominica" },
+                { name: "Dominican Republic" },
+                { name: "Ecuador" },
+                { name: "Egypt" },
+                { name: "El Salvador" },
+                { name: "Equatorial Guinea" },
+                { name: "Eritrea" },
+                { name: "Estonia" },
+                { name: "Ethiopia" },
+                { name: "Falkland Islands" },
+                { name: "Faroe Islands" },
+                { name: "Fiji" },
+                { name: "Finland" },
+                { name: "France" },
+                { name: "French Guiana" },
+                { name: "French Polynesia" },
+                //{ name: "French Southern Territories" },
+                { name: "Gabon" },
+                { name: "Gambia" },
+                { name: "Georgia" },
+                { name: "Germany" },
+                { name: "Ghana" },
+                //{ name: "Gibraltar" },
+                { name: "Greece" },
+                { name: "Greenland" },
+                { name: "Grenada" },
+                { name: "Guadeloupe" },
+                { name: "Guam" },
+                { name: "Guatemala" },
+                //{ name: "Guernsey" },
+                { name: "Guinea" },
+                { name: "Guinea-Bissau" },
+                { name: "Guyana" },
+                { name: "Haiti" },
+                //{ name: "Heard Island and Mcdonald Islands" },
+                //{ name: "Holy See" },
+                { name: "Honduras" },
+                { name: "Hong Kong" },
+                { name: "Hungary" },
+                { name: "Iceland" },
+                { name: "India" },
+                { name: "Indonesia" },
+                { name: "Iran" },
+                { name: "Iraq" },
+                { name: "Ireland" },
+                //{ name: "Isle of Man" },
+                { name: "Israel" },
+                { name: "Italy" },
+                { name: "Jamaica" },
+                { name: "Japan" },
+                //{ name: "Jersey" },
+                { name: "Jordan" },
+                { name: "Kazakhstan" },
+                { name: "Kenya" },
+                { name: "Kiribati" },
+                //{ name: "North Korea" }, No Scouting
+                { name: "South Korea" },
+                { name: "Kuwait" },
+                { name: "Kyrgyzstan" },
+                //{ name: "Laos" }, No Scouting
+                { name: "Latvia" },
+                { name: "Lebanon" },
+                { name: "Lesotho" },
+                { name: "Liberia" },
+                { name: "Libya" },
+                { name: "Liechtenstein" },
+                { name: "Lithuania" },
+                { name: "Luxembourg" },
+                { name: "Macau" },
+                { name: "Macedonia" },
+                { name: "Madagascar" },
+                { name: "Malawi" },
+                { name: "Malaysia" },
+                { name: "Maldives" },
+                { name: "Mali" },
+                { name: "Malta" },
+                { name: "Marshall Islands" },
+                { name: "Martinique" },
+                { name: "Mauritania" },
+                { name: "Mauritius" },
+                { name: "Mayotte" },
+                { name: "Mexico" },
+                { name: "Micronesia" },
+                { name: "Moldova" },
+                { name: "Monaco" },
+                { name: "Mongolia" },
+                { name: "Montenegro" },
+                { name: "Montserrat" },
+                { name: "Morocco" },
+                { name: "Mozambique" },
+                { name: "Myanmar" },
+                { name: "Namibia" },
+                { name: "Nauru" },
+                { name: "Nepal" },
+                { name: "Netherlands" },
+                { name: "Netherlands Antilles" },
+                { name: "New Caledonia" },
+                { name: "New Zealand" },
+                { name: "Nicaragua" },
+                { name: "Niger" },
+                { name: "Nigeria" },
+                { name: "Niue" },
+                { name: "Norfolk Island" },
+                { name: "Northern Mariana Islands" },
+                { name: "Norway" },
+                { name: "Oman" },
+                { name: "Pakistan" },
+                { name: "Palau" },
+                { name: "Palestine" },
+                { name: "Panama" },
+                { name: "Papua New Guinea" },
+                { name: "Paraguay" },
+                { name: "Peru" },
+                { name: "Philippines" },
+                //{ name: "Pitcairn" },
+                { name: "Poland" },
+                { name: "Portugal" },
+                { name: "Puerto Rico" },
+                { name: "Qatar" },
+                { name: "Reunion" },
+                { name: "Romania" },
+                { name: "Russia" },
+                { name: "Rwanda" },
+                { name: "Saint Helena" },
+                { name: "Saint Kitts and Nevis" },
+                { name: "Saint Lucia" },
+                { name: "Saint Pierre and Miquelon" },
+                { name: "Saint Vincent and the Grenadines" },
+                { name: "Samoa" },
+                { name: "San Marino" },
+                { name: "Sao Tome and Principe" },
+                { name: "Saudi Arabia" },
+                { name: "Senegal" },
+                { name: "Serbia" },
+                { name: "Seychelles" },
+                { name: "Sierra Leone" },
+                { name: "Singapore" },
+                { name: "Slovakia" },
+                { name: "Slovenia" },
+                { name: "Solomon Islands" },
+                { name: "Somalia" },
+                { name: "South Africa" },
+                //{ name: "South Georgia and the South Sandwich Islands" },
+                { name: "Spain" },
+                { name: "Sri Lanka" },
+                { name: "Sudan" },
+                { name: "Suriname" },
+                //{ name: "Svalbard and Jan Mayen" },
+                { name: "Eswatini" },
+                { name: "Sweden" },
+                { name: "Switzerland" },
+                { name: "Syria" },
+                { name: "Taiwan" },
+                { name: "Tajikistan" },
+                { name: "Tanzania" },
+                { name: "Thailand" },
+                { name: "Timor-Leste" },
+                { name: "Togo" },
+                { name: "Tokelau" },
+                { name: "Tonga" },
+                { name: "Trinidad and Tobago" },
+                { name: "Tunisia" },
+                { name: "Turkey" },
+                { name: "Turkmenistan" },
+                { name: "Turks and Caicos Islands" },
+                { name: "Tuvalu" },
+                { name: "Uganda" },
+                { name: "Ukraine" },
+                { name: "United Arab Emirates" },
+                { name: "United Kingdom" },
+                { name: "United States" },
+                //{ name: "United States Minor Outlying Islands" },
+                { name: "Uruguay" },
+                { name: "Uzbekistan" },
+                { name: "Vanuatu" },
+                { name: "Venezuela" },
+                { name: "Vietnam" },
+                { name: "British Virgin Islands" },
+                { name: "American Virgin Islands" },
+                { name: "Wallis and Futuna" },
+                //{ name: "Western Sahara" },
+                { name: "Yemen" },
+                { name: "Zambia" },
+                { name: "Zimbabwe" }
+            ];
+
+            var db = new Dexie("JOTI"+year);
+
+            db.version(1).stores({
+                contacts: `++id, scouter, country, jid, date`
+            });
+            
+            // Remove scouters and countries from database (migration)
+            db.version(2).stores({
+                scouters: null,
+                countries: null
+            });
+
+            // Add location fields for multi-level locations
+            db.version(3).stores({
+                contacts: `++id, scouter, country, jid, date, location, locationName, region, lat, lng`
+            }).upgrade(function(tx) {
+                return tx.table('contacts').toCollection().modify(function(contact) {
+                    if (!contact.location) {
+                        contact.location = contact.country;
+                        contact.locationName = contact.country;
+                    }
+                });
+            });
+
+            // Add city field for finer clustering
+            db.version(4).stores({
+                contacts: `++id, scouter, country, jid, date, location, locationName, region, lat, lng, city`
+            }).upgrade(function(tx){
+                return tx.table('contacts').toCollection().modify(function(c){
+                    if (!c.city) {
+                        var src = c.locationNameEn || c.locationName || c.location || '';
+                        if (src && src.indexOf(',') !== -1) {
+                            c.city = src.split(',')[0].trim();
+                        }
+                    }
+                });
+            });
+
+            function mapView() {
+                $('.btn-group a').removeClass('active');
+                $('#map').show();
+                $('#pinMap').hide();
+                $('#countryTable').show();
+                $('#pie').hide();
+                $('#logContainer').hide();
+                $('#scouterTable').hide();
+                $('#mapBtn').addClass('active');
+                updateCharts();
+            }
+            $('#mapBtn').click(mapView);
+
+            // Pin map view and logic
+            let pinMapInstance = null;
+            let markerClusterGroup = null;
+            let clusteringMode = 'auto'; // 'auto', 'country', 'region', 'none'
+            let tileLayerLocal = null;
+            let tileLayerEnglish = null;
+            let currentBaseLayer = null;
+
+            function applyBasemap() {
+                if (!pinMapInstance) return;
+                if (currentBaseLayer) {
+                    pinMapInstance.removeLayer(currentBaseLayer);
+                    currentBaseLayer = null;
+                }
+                if (basemapLanguage === 'english') {
+                    if (tileLayerEnglish) currentBaseLayer = tileLayerEnglish.addTo(pinMapInstance);
+                } else {
+                    if (tileLayerLocal) currentBaseLayer = tileLayerLocal.addTo(pinMapInstance);
+                }
+            }
+
+            function initPinMap() {
+                if (!pinMapInstance) {
+                    pinMapInstance = L.map('pinMap').setView([20, 0], 2);
+                    tileLayerLocal = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        maxZoom: 18
+                    });
+                    tileLayerEnglish = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '© OpenStreetMap contributors © CARTO',
+                        subdomains: 'abcd',
+                        maxZoom: 19
+                    });
+                    applyBasemap();
+
+                    const controlHtml = `
+                        <div class="map-controls">
+                            <label>Clustering Mode:</label>
+                            <select id="clusteringMode">
+                                <option value="auto" selected>Auto (Zoom-based)</option>
+                                <option value="none">All Pins Visible</option>
+                                <option value="city">Group by City/Suburb</option>
+                                <option value="region">Group by Region</option>
+                                <option value="country">Group by Country</option>
+                            </select>
+                        </div>`;
+                    $('#pinMap').append(controlHtml);
+
+                    $('#clusteringMode').on('change', function() {
+                        clusteringMode = $(this).val();
+                        updatePinMap();
+                    });
+                }
+            }
+
+            function getDisplayLocation(contact) {
+                // Always use English for popups and log
+                return contact.locationNameEn || contact.locationName || contact.location || contact.country;
+            }
+            function makeCountIcon(count) {
+                let size = 'small';
+                let iconSize = 30;
+                if (count > 10) { size = 'medium'; iconSize = 40; }
+                if (count > 50) { size = 'large'; iconSize = 50; }
+                const bg = size === 'small' ? 'rgba(110, 204, 57, 0.85)' : size === 'medium' ? 'rgba(241, 211, 87, 0.9)' : 'rgba(253, 156, 115, 0.9)';
+                return L.divIcon({
+                    html: `<div style="background:${bg};width:${iconSize}px;height:${iconSize}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border:3px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${count}</div>`,
+                    className: '',
+                    iconSize: L.point(iconSize, iconSize)
+                });
+            }
+            async function updatePinMap() {
+                if (!pinMapInstance) return;
+                if (markerClusterGroup) {
+                    pinMapInstance.removeLayer(markerClusterGroup);
+                    markerClusterGroup = null;
+                }
+
+                const contacts = await db.contacts.toArray();
+                const withCoords = contacts.filter(c => typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng));
+
+                if (clusteringMode === 'auto' || clusteringMode === 'none') {
+                    markerClusterGroup = L.markerClusterGroup({
+                        disableClusteringAtZoom: clusteringMode === 'none' ? 1 : 10,
+                        maxClusterRadius: clusteringMode === 'none' ? 0 : 80,
+                        spiderfyOnMaxZoom: true,
+                        showCoverageOnHover: false,
+                        zoomToBoundsOnClick: true,
+                        iconCreateFunction: function(cluster) {
+                            const count = cluster.getChildCount();
+                            let size = 'small';
+                            if (count > 10) size = 'medium';
+                            if (count > 50) size = 'large';
+                            return L.divIcon({
+                                html: '<div><span>' + count + '</span></div>',
+                                className: 'marker-cluster marker-cluster-' + size,
+                                iconSize: L.point(40, 40)
+                            });
+                        }
+                    });
+
+                    withCoords.forEach(c => {
+                        let marker;
+                        if (markerStyle === 'circles') {
+                            marker = L.marker([c.lat, c.lng], { icon: makeCountIcon(1) });
+                        } else {
+                            marker = L.marker([c.lat, c.lng]);
+                        }
+                        const popup = `<strong>${c.jid}</strong><br>${getDisplayLocation(c)}<br>Scouter: ${c.scouter}`;
+                        marker.bindPopup(popup);
+                        markerClusterGroup.addLayer(marker);
+                    });
+
+                    pinMapInstance.addLayer(markerClusterGroup);
+                } else {
+                    let groupKey = 'region';
+                    if (clusteringMode === 'country') groupKey = 'country';
+                    if (clusteringMode === 'city') groupKey = 'city';
+                    const groups = {};
+                    withCoords.forEach(c => {
+                        let keyVal = c[groupKey];
+                        if (!keyVal) {
+                            if (groupKey === 'city') {
+                                var baseName = (c.locationNameEn || c.locationName || c.location || '').split(',')[0].trim();
+                                keyVal = baseName || 'Unknown';
+                            } else {
+                                keyVal = c.country || 'Unknown';
+                            }
+                        }
+                        if (!groups[keyVal]) groups[keyVal] = { contacts: [], latSum: 0, lngSum: 0 };
+                        groups[keyVal].contacts.push(c);
+                        groups[keyVal].latSum += c.lat; groups[keyVal].lngSum += c.lng;
+                    });
+
+                    markerClusterGroup = L.layerGroup();
+
+                    Object.keys(groups).forEach(k => {
+                        const g = groups[k];
+                        const count = g.contacts.length;
+                        const lat = g.latSum / count;
+                        const lng = g.lngSum / count;
+
+                        let size = 'small';
+                        let iconSize = 30;
+                        if (count > 10) { size = 'medium'; iconSize = 40; }
+                        if (count > 50) { size = 'large'; iconSize = 50; }
+                        const bg = size === 'small' ? 'rgba(110, 204, 57, 0.85)' : size === 'medium' ? 'rgba(241, 211, 87, 0.9)' : 'rgba(253, 156, 115, 0.9)';
+                        const icon = L.divIcon({
+                            html: `<div style="background:${bg};width:${iconSize}px;height:${iconSize}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border:3px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${count}</div>`,
+                            className: '',
+                            iconSize: L.point(iconSize, iconSize)
+                        });
+
+                        const marker = L.marker([lat, lng], { icon });
+                        let popup = `<strong>${k}</strong><br>Contacts: ${count}<br><br>`;
+                        g.contacts.slice(0, 8).forEach(c => { popup += `${c.jid} • ${getDisplayLocation(c)} (${c.scouter})<br>`; });
+                        if (count > 8) popup += `<em>...and ${count - 8} more</em>`;
+                        marker.bindPopup(popup);
+                        markerClusterGroup.addLayer(marker);
+                    });
+
+                    pinMapInstance.addLayer(markerClusterGroup);
+                }
+            }
+
+            function pinMapView() {
+                $('.btn-group a').removeClass('active');
+                $('#map').hide();
+                $('#pinMap').show();
+                $('#countryTable').show();
+                $('#pie').hide();
+                $('#log').hide();
+                $('#scouterTable').hide();
+                $('#pinMapBtn').addClass('active');
+                initPinMap();
+                updatePinMap();
+                setTimeout(() => { if (pinMapInstance) pinMapInstance.invalidateSize(); }, 50);
+            }
+            $('#pinMapBtn').click(pinMapView);
+
+            function pieView() {
+                $('.btn-group a').removeClass('active');
+                $('#map').hide();
+                $('#pinMap').hide();
+                $('#countryTable').show();
+                $('#pie').show();
+                $('#logContainer').hide();
+                $('#scouterTable').hide();
+                $('#pieBtn').addClass('active');
+                updateCharts();
+            }
+            $('#pieBtn').click(pieView);
+
+            function logView() {
+                $('.btn-group a').removeClass('active');
+                $('#map').hide();
+                $('#pinMap').hide();
+                $('#countryTable').hide();
+                $('#pie').hide();
+                $('#logContainer').show();
+                $('#scouterTable').show();
+                $('#logBtn').addClass('active');
+                updateLogs();
+            }
+            $('#logBtn').click(logView);
+
+            function updateLogs() {
+                updateScouters();
+                updateLog();
+            }
+
+            function updateLog() {
+                db.contacts.orderBy('date').reverse().toArray().then(function(contacts) {
+                    var tbody = $('#log tbody');
+                    tbody.empty();
+                    contacts.forEach(function(contact, index) {
+                        var date = new Date(contact.date);
+                        var hours = date.getHours();
+                        var minutes = date.getMinutes();
+                        var seconds = date.getSeconds();
+                        var delBtn = "<div class='btn btn-sm btn-outline-dark delete-btn' data-id='"+(index+1)+"'><i class='bi bi-trash'></i></div>";
+                        if (hours < 10) hours = '0' + hours;
+                        if (minutes < 10) minutes = '0' + minutes;
+                        if (seconds < 10) seconds = '0' + seconds;
+                        var formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + ' ' + hours + ':' + minutes + ':' + seconds;
+                        const locationDisplay = getDisplayLocation(contact);
+                        tbody.append('<tr><td>' + formattedDate + '</td><td>' + contact.scouter + '</td><td>' + locationDisplay + '</td><td>' + contact.country + '</td><td>' + contact.jid + '</td><td>'+delBtn+'</td></tr>');
+                    });
+                });
+            }
+
+            function updateScouters() {
+                db.contacts.orderBy('scouter').toArray().then(function(contacts) {
+                    var scouterCount = {};
+                    contacts.forEach(function(contact) {
+                        if (scouterCount[contact.scouter]) {
+                            scouterCount[contact.scouter]++;
+                        } else {
+                            scouterCount[contact.scouter] = 1;
+                        }
+                    });
+
+                    var sortedScouters = Object.keys(scouterCount).sort(function(a, b) {
+                        return scouterCount[b] - scouterCount[a];
+                    });
+
+                    var scouterCountries = {};
+                    contacts.forEach(function(contact) {
+                        if (scouterCountries[contact.scouter]) {
+                            if (scouterCountries[contact.scouter].indexOf(contact.country) === -1) {
+                                scouterCountries[contact.scouter].push(contact.country);
+                            }
+                        } else {
+                            scouterCountries[contact.scouter] = [contact.country];
+                        }
+                    });
+
+                    console.log(scouterCountries);
+
+                    var tbody = $('#scouterTable tbody');
+                    tbody.empty();
+                    var maxCount = 12;
+                    var counter = 1;
+                    sortedScouters.forEach(function(scouter, index) {
+                        if (counter > maxCount) return;
+                        tbody.append('<tr><td>' + (index + 1) + '</td><td>' + scouter + '</td><td>' + scouterCount[scouter] + '</td><td>' +  scouterCountries[scouter].length + '</td></tr>');
+                        counter++;
+                    });
+                });
+            }
+
+            function getCountriesTable() {
+                db.contacts.orderBy('country').toArray().then(function(contacts) {
+                    var countryCount = {};
+                    contacts.forEach(function(contact) {
+                        if (countryCount[contact.country]) {
+                            countryCount[contact.country]++;
+                        } else {
+                            countryCount[contact.country] = 1;
+                        }
+                    });
+
+                    var sortedCountries = Object.keys(countryCount).sort(function(a, b) {
+                        return countryCount[b] - countryCount[a];
+                    });
+
+                    var tbody = $('#countryTable tbody');
+                    tbody.empty();
+                    var maxCount = 12;
+                    var counter = 1;
+                    sortedCountries.forEach(function(country, index) {
+                        if (counter > maxCount) return;
+                        tbody.append('<tr><td>' + (index + 1) + '</td><td>' + country + '</td><td>' + countryCount[country] + '</td></tr>');
+                        counter++;
+                    });
+                });
+            }
+            getCountriesTable();
+
+            function getCountriesCount() {
+                return db.contacts.orderBy('country').uniqueKeys().then(function(keys) {
+                    var res = [];
+                    var promises = keys.map(function(key) {
+                        return db.contacts.where('country').equals(key).count().then(function(count) {
+                            res.push([key, count]);
+                        });
+                    });
+                    return Promise.all(promises).then(function() {
+                        res.sort(function(a, b) {
+                            return b[1] - a[1];
+                        });
+                        return [['Country', 'Contacts']].concat(res);
+                    });
+                });
+            }
+
+            $(document).on('click', '.delete-btn', function(e) {
+                var id = $(this).data('id');
+                db.contacts.orderBy('date').reverse().toArray().then(function(contacts) {
+                    var contact = contacts[id - 1];
+                    db.contacts.delete(contact.id).then(function() {
+                        updateLogs();
+                        updateCharts();
+                        if ($('#pinMap').is(':visible')) { updatePinMap(); }
+                    });
+                });
+            });
+
+            function selectScouters() {
+                var select = $('#scouterSelect');
+                select.html('<option selected disabled>Monty Wombat...</option>');
+                // Read directly from the scouters array defined in code
+                scouters.slice().sort(function(a, b) { 
+                    return a.name.localeCompare(b.name); 
+                }).forEach(function(scout) {
+                    select.append('<option>'+scout.name+'</option>');
+                });
+            }
+            selectScouters();
+
+            // Nominatim-based autocomplete (live suggestions)
+            function debounce(fn, delay) {
+                let t = null;
+                return function(...args) {
+                    clearTimeout(t);
+                    t = setTimeout(() => fn.apply(this, args), delay);
+                };
+            }
+
+            let selectedPlace = null;
+            let activeSuggestionIndex = -1;
+
+            const countryAlias = {
+                "United States of America": "United States",
+                "Russian Federation": "Russia",
+                "Czechia": "Czech Republic",
+                "Republic of Korea": "South Korea",
+                "Korea, Republic of": "South Korea",
+                "Türkiye": "Turkey",
+                "Syrian Arab Republic": "Syria",
+                "Iran, Islamic Republic of": "Iran",
+                "Lao People's Democratic Republic": "Laos",
+                "Republic of Moldova": "Moldova",
+                "Viet Nam": "Vietnam",
+                "Cabo Verde": "Cape Verde",
+                "Ivory Coast": "Ivory Coast",
+                "Côte d’Ivoire": "Ivory Coast",
+                "Cote d'Ivoire": "Ivory Coast",
+                "Macao": "Macau",
+                "North Macedonia": "Macedonia",
+                "State of Palestine": "Palestine",
+                "Bolivia (Plurinational State of)": "Bolivia",
+                "Venezuela (Bolivarian Republic of)": "Venezuela",
+                "Tanzania, United Republic of": "Tanzania",
+                "Micronesia, Federated States of": "Micronesia"
+            };
+
+            function canonicalizeCountryName(name) {
+                if (!name) return null;
+                const aliased = countryAlias[name] || name;
+                const exact = countries.find(c => c.name.toLowerCase() === aliased.toLowerCase());
+                if (exact) return exact.name;
+                const contains = countries.find(c => aliased.toLowerCase().includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(aliased.toLowerCase()));
+                return contains ? contains.name : aliased;
+            }
+
+            function placeToDisplay(place) {
+                const a = place.address || {};
+                const city = a.city || a.town || a.village || a.hamlet || a.suburb || a.neighbourhood || a.county;
+                const region = a.state || a.region || a.province || a.county;
+                const country = a.country;
+                const parts = [];
+                if (city) parts.push(city);
+                if (region && (!city || region !== city)) parts.push(region);
+                if (country) parts.push(country);
+                return parts.join(', ') || place.display_name;
+            }
+
+            const fetchSuggestions = debounce(async function(query) {
+                selectedPlace = null;
+                activeSuggestionIndex = -1;
+                const $list = $('#locationSuggestions');
+                $list.hide().empty();
+                if (!query || query.trim().length < 2) return;
+                try {
+                    const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&dedupe=1&q=' + encodeURIComponent(query);
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) return;
+                    const items = await res.json();
+                    if (!Array.isArray(items) || items.length === 0) return;
+
+                    items.forEach((p, idx) => {
+                        const main = placeToDisplay(p);
+                        const secondary = p.display_name;
+                        const $item = $('<button type="button" class="list-group-item list-group-item-action"></button>');
+                        $item.append($('<div class="fw-bold"></div>').text(main));
+                        $item.append($('<div class="small text-muted"></div>').text(secondary));
+                        $item.data('place', p);
+                        $item.on('click', function() {
+                            selectPlace($(this).data('place'));
+                        });
+                        $list.append($item);
+                    });
+                    $list.show();
+                } catch (e) {
+                    console.error('Location autocomplete error:', e);
+                }
+            }, 350);
+
+            function selectPlace(place) {
+                selectedPlace = place;
+                $('#locationInput').val(placeToDisplay(place));
+                $('#locationSuggestions').hide().empty();
+                activeSuggestionIndex = -1;
+            }
+
+            $('#locationInput').on('input', function() {
+                const q = $(this).val();
+                selectedPlace = null;
+                fetchSuggestions(q);
+            });
+
+            $('#locationInput').on('keydown', function(e) {
+                const $items = $('#locationSuggestions .list-group-item');
+                if (!$items.length) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, $items.length - 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeSuggestionIndex >= 0) {
+                        selectPlace($($items[activeSuggestionIndex]).data('place'));
+                    }
+                } else if (e.key === 'Escape') {
+                    $('#locationSuggestions').hide();
+                    activeSuggestionIndex = -1;
+                    return;
+                } else {
+                    return;
+                }
+                $items.removeClass('active');
+                if (activeSuggestionIndex >= 0) {
+                    $($items[activeSuggestionIndex]).addClass('active');
+                }
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#locationInput, #locationSuggestions').length) {
+                    $('#locationSuggestions').hide();
+                }
+            });
+
+            google.charts.load('current', {
+                'packages': ['geochart', 'corechart']
+            });
+            google.charts.setOnLoadCallback(drawCharts);
+
+            // Gradient color definitions (moved to top for use in drawCharts)
+            const gradients = {
+                green: ['#C8E6C9', '#66BB6A', '#2E7D32'],
+                blue: ['#E3F2FD', '#42A5F5', '#0D47A1'],
+                sunset: ['#FFE082', '#FF7043', '#D32F2F'],
+                purple: ['#E1BEE7', '#AB47BC', '#4A148C'],
+                teal: ['#B2DFDB', '#26A69A', '#00695C'],
+                fire: ['#FFEB3B', '#FF9800', '#D84315'],
+                gray: ['#E0E0E0', '#757575', '#212121'],
+                original: ['#F1CEA0', '#F89C59', '#B96446']
+            };
+
+            // Background theme definitions
+            const backgrounds = {
+                green: 'radial-gradient(circle, rgb(22, 159, 79), rgb(119, 190, 78))',
+                blue: 'radial-gradient(circle, rgb(41, 128, 185), rgb(109, 213, 250))',
+                purple: 'radial-gradient(circle, rgb(142, 68, 173), rgb(155, 89, 182))',
+                sunset: 'radial-gradient(circle, rgb(230, 126, 34), rgb(241, 196, 15))',
+                forest: 'radial-gradient(circle, rgb(39, 174, 96), rgb(22, 160, 133))',
+                night: 'radial-gradient(circle, rgb(44, 62, 80), rgb(52, 73, 94))',
+                autumn: 'radial-gradient(circle, rgb(211, 84, 0), rgb(192, 57, 43))'
+            };
+
+            // Current settings (stored globally)
+            let currentGradient = 'green';
+            let currentBackground = 'green';
+            let markerStyle = 'pins';
+            let basemapLanguage = 'local';
+
+            // Cohesive, accessible palette for pie chart (Tableau 10 + accents)
+            const piePalette = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab', '#86bc86', '#a2d9ce'];
+
+            // Build pie data ensuring "Other" is only added when needed and remains small where possible
+            function buildPieData(dataArray) {
+                // dataArray: [ ['Country','Contacts'], ... ]
+                const header = dataArray[0];
+                const rows = dataArray.slice(1);
+                if (rows.length === 0) return dataArray;
+
+                // Sort by count desc just in case
+                const sorted = rows.slice().sort((a, b) => b[1] - a[1]);
+                const total = sorted.reduce((sum, r) => sum + (typeof r[1] === 'number' ? r[1] : 0), 0);
+                if (!total) return [header];
+
+                const maxSlices = 20;    // maximum number of visual slices to display
+                const targetOther = 0.1; // try to keep Other <= 20%
+
+                // If already within slice budget, show all without Other
+                if (sorted.length <= maxSlices) {
+                    return [header].concat(sorted);
+                }
+
+                // Increase the number of explicit slices until Other is small or we hit the slice budget
+                let k = 5; // start with a reasonable number of top slices
+                let sumTop = sorted.slice(0, k).reduce((s, r) => s + r[1], 0);
+                let other = total - sumTop;
+
+                while (k < Math.min(sorted.length, maxSlices - 1) && (other / total) > targetOther) {
+                    k++;
+                    sumTop += sorted[k - 1][1];
+                    other = total - sumTop;
+                }
+
+                // If Other is now acceptably small and there are remaining categories, include it
+                if ((other / total) <= targetOther && k < sorted.length) {
+                    const topRows = sorted.slice(0, k);
+                    return [header].concat(topRows).concat([["Other", other]]);
+                }
+
+                // Otherwise, include as many individual slices as allowed and omit Other (to avoid a huge Other)
+                return [header].concat(sorted.slice(0, Math.min(sorted.length, maxSlices)));
+            }
+
+            function drawCharts() {
+                getCountriesCount().then(function(dataArray) {
+                    var data = google.visualization.arrayToDataTable(dataArray);
+                    var geooptions = {
+                        backgroundColor: {
+                            fill: '#0D9CCE',
+                        },
+                        defaultColor: 'rgba(255, 255, 255, 1)',
+                        datalessRegionColor: 'rgba(255, 255, 255, 1)',
+                        geochartVersion: 11,
+                        legend: 'none',
+                        colorAxis: {
+                            minValue: 1,
+                            colors: gradients[currentGradient]
+                        },
+                        displayMode: 'regions'
+                    };
+                    var pieoptions = {
+                        backgroundColor: {
+                            fill: 'transparent',
+                        },
+                        legend: 'none',
+                        pieSliceText: 'label',
+                        pieSliceBorderColor: '#ffffff',
+                        colors: piePalette,
+                        // Disable auto "Other"; we handle grouping manually in buildPieData
+                        sliceVisibilityThreshold: 0
+                    };
+                    var chart = new google.visualization.GeoChart(document.getElementById('map'));
+                    chart.draw(data, geooptions);
+                    var pieDataArray = buildPieData(dataArray);
+                    // Ensure "Other" is always grey
+                    var otherIndex = pieDataArray.slice(1).findIndex(function(r){ return r[0] === 'Other'; });
+                    if (otherIndex >= 0) {
+                        pieoptions.slices = pieoptions.slices || {};
+                        pieoptions.slices[otherIndex] = { color: '#C3C4C6' };
+                    }
+                    var pieData = google.visualization.arrayToDataTable(pieDataArray);
+                    var piechart = new google.visualization.PieChart(document.getElementById('pie'));
+                    piechart.draw(pieData, pieoptions);
+                });
+            }
+
+            function updateCharts() {
+                drawCharts();
+                getCountriesTable();
+            }
+
+            $(window).resize(function() {
+             updateCharts();
+             if (pinMapInstance && $('#pinMap').is(':visible')) {
+                 pinMapInstance.invalidateSize();
+             }
+            });
+
+            $(document).on('click', '#goBtn', async function(e) {
+                var scouter = $('#scouterSelect').val();
+                var contact = $('#contactInput').val();
+                var locationText = $('#locationInput').val();
+
+                if (!scouter) { alert("Scouter cannot be empty"); return; }
+                if (!contact) { alert("Contact cannot be empty"); return; }
+                if (!locationText) { alert("Location cannot be empty"); return; }
+
+                let place = selectedPlace;
+                if (!place) {
+                    try {
+                        const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&dedupe=1&q=' + encodeURIComponent(locationText);
+                        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                        if (res.ok) {
+                            const arr = await res.json();
+                            if (Array.isArray(arr) && arr.length) place = arr[0];
+                        }
+                    } catch (err) {
+                        console.error('Lookup failed:', err);
+                    }
+                }
+
+                if (!place) {
+                    alert('Please select a valid location from suggestions.');
+                    return;
+                }
+
+                const a = place.address || {};
+                const lat = parseFloat(place.lat);
+                const lng = parseFloat(place.lon);
+                const countryRaw = a.country || '';
+                const country = canonicalizeCountryName(countryRaw) || countryRaw;
+
+                const city = a.city || a.town || a.village || a.hamlet || a.suburb || a.neighbourhood || a.county || '';
+                const region = a.state || a.region || a.province || a.county || '';
+
+                const displayNameParts = [];
+                if (city) displayNameParts.push(city);
+                if (region && (!city || region !== city)) displayNameParts.push(region);
+                if (country) displayNameParts.push(country);
+                const locationNameLocal = displayNameParts.join(', ') || place.display_name || locationText;
+
+                // Build English label via reverse geocoding
+                let locationNameEn = null;
+                try {
+                    const urlEn = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=en`;
+                    const resEn = await fetch(urlEn, { headers: { 'Accept': 'application/json' } });
+                    if (resEn.ok) {
+                        const rev = await resEn.json();
+                        const ae = rev.address || {};
+                        const cityEn = ae.city || ae.town || ae.village || ae.hamlet || ae.suburb || ae.neighbourhood || ae.county || '';
+                        const regionEn = ae.state || ae.region || ae.province || ae.county || '';
+                        const countryEnRaw = ae.country || '';
+                        const countryEn = canonicalizeCountryName(countryEnRaw) || countryEnRaw;
+                        const partsEn = [];
+                        if (cityEn) partsEn.push(cityEn);
+                        if (regionEn && (!cityEn || regionEn !== cityEn)) partsEn.push(regionEn);
+                        if (countryEn) partsEn.push(countryEn);
+                        locationNameEn = partsEn.join(', ') || rev.display_name || locationNameLocal;
+                    }
+                } catch (e) { console.warn('English reverse lookup failed', e); }
+                if (!locationNameEn) locationNameEn = locationNameLocal;
+
+                var date = new Date();
+                db.contacts.add({
+                    scouter: scouter,
+                    country: country,
+                    jid: contact,
+                    date: date,
+                    location: locationNameLocal,
+                    locationName: locationNameLocal,
+                    locationNameLocal: locationNameLocal,
+                    locationNameEn: locationNameEn,
+                    region: region,
+                    city: city,
+                    lat: lat,
+                    lng: lng
+                }).then(function() {
+                    updateLogs();
+                    updateCharts();
+                    if ($('#pinMap').is(':visible')) { updatePinMap(); }
+                });
+
+                selectedPlace = null;
+                $('#contactInput').val('');
+                $('#locationInput').val('');
+                $('#locationSuggestions').hide().empty();
+                selectScouters();
+            });
+
+            // Seed test data function
+            async function seedTestData() {
+                var now = Date.now();
+                const seedLocations = [
+                    { name: "Sydney", region: "New South Wales", country: "Australia", lat: -33.8688, lng: 151.2093, count: 45, subLocations: [
+                        { name: "Parramatta", lat: -33.814, lng: 151.006 },
+                        { name: "Bondi", lat: -33.8908, lng: 151.2743 },
+                        { name: "Manly", lat: -33.8001, lng: 151.2867 }
+                    ]},
+                    { name: "Melbourne", region: "Victoria", country: "Australia", lat: -37.8136, lng: 144.9631, count: 38, subLocations: [
+                        { name: "St Kilda", lat: -37.8676, lng: 144.9809 },
+                        { name: "Carlton", lat: -37.8006, lng: 144.9710 },
+                        { name: "Footscray", lat: -37.7997, lng: 144.8991 }
+                    ]},
+                    { name: "Brisbane", region: "Queensland", country: "Australia", lat: -27.4698, lng: 153.0251, count: 32, subLocations: [
+                        { name: "South Bank", lat: -27.4772, lng: 153.0210 },
+                        { name: "Fortitude Valley", lat: -27.4550, lng: 153.0345 },
+                        { name: "Ipswich", lat: -27.6167, lng: 152.7667 }
+                    ]},
+                    { name: "London", region: "England", country: "United Kingdom", lat: 51.5074, lng: -0.1278, count: 40, subLocations: [
+                        { name: "Camden", lat: 51.5390, lng: -0.1426 },
+                        { name: "Greenwich", lat: 51.4826, lng: 0.0077 },
+                        { name: "Croydon", lat: 51.3721, lng: -0.0982 }
+                    ]},
+                    { name: "Manchester", region: "England", country: "United Kingdom", lat: 53.4808, lng: -2.2426, count: 25, subLocations: [
+                        { name: "Salford", lat: 53.4875, lng: -2.2901 },
+                        { name: "Stockport", lat: 53.4098, lng: -2.1576 },
+                        { name: "Bolton", lat: 53.5769, lng: -2.4299 }
+                    ]},
+                    { name: "New York", region: "New York", country: "United States", lat: 40.7128, lng: -74.0060, count: 50, subLocations: [
+                        { name: "Manhattan", lat: 40.7831, lng: -73.9712 },
+                        { name: "Brooklyn", lat: 40.6782, lng: -73.9442 },
+                        { name: "Queens", lat: 40.7282, lng: -73.7949 }
+                    ]},
+                    { name: "Los Angeles", region: "California", country: "United States", lat: 34.0522, lng: -118.2437, count: 35, subLocations: [
+                        { name: "Santa Monica", lat: 34.0195, lng: -118.4912 },
+                        { name: "Pasadena", lat: 34.1478, lng: -118.1445 },
+                        { name: "Long Beach", lat: 33.7701, lng: -118.1937 }
+                    ]},
+                    { name: "Chicago", region: "Illinois", country: "United States", lat: 41.8781, lng: -87.6298, count: 28, subLocations: [
+                        { name: "Evanston", lat: 42.0451, lng: -87.6877 },
+                        { name: "Oak Park", lat: 41.8850, lng: -87.7845 },
+                        { name: "Hyde Park", lat: 41.7943, lng: -87.5907 }
+                    ]},
+                    { name: "Toronto", region: "Ontario", country: "Canada", lat: 43.6532, lng: -79.3832, count: 30, subLocations: [
+                        { name: "Scarborough", lat: 43.7764, lng: -79.2318 },
+                        { name: "North York", lat: 43.7615, lng: -79.4111 },
+                        { name: "Etobicoke", lat: 43.6205, lng: -79.5132 }
+                    ]},
+                    { name: "Vancouver", region: "British Columbia", country: "Canada", lat: 49.2827, lng: -123.1207, count: 22, subLocations: [
+                        { name: "Burnaby", lat: 49.2488, lng: -122.9805 },
+                        { name: "Richmond", lat: 49.1666, lng: -123.1336 },
+                        { name: "North Vancouver", lat: 49.3209, lng: -123.0726 }
+                    ]},
+                    { name: "Mumbai", region: "Maharashtra", country: "India", lat: 19.0760, lng: 72.8777, count: 35, subLocations: [
+                        { name: "Navi Mumbai", lat: 19.0330, lng: 73.0297 },
+                        { name: "Thane", lat: 19.2183, lng: 72.9781 },
+                        { name: "Andheri", lat: 19.1197, lng: 72.8468 }
+                    ]},
+                    { name: "Delhi", region: "Delhi", country: "India", lat: 28.7041, lng: 77.1025, count: 30, subLocations: [
+                        { name: "New Delhi", lat: 28.6139, lng: 77.2090 },
+                        { name: "Gurgaon", lat: 28.4595, lng: 77.0266 },
+                        { name: "Noida", lat: 28.5355, lng: 77.3910 }
+                    ]},
+                    { name: "Tokyo", region: "Tokyo", country: "Japan", lat: 35.6762, lng: 139.6503, count: 25, subLocations: [
+                        { name: "Shinjuku", lat: 35.6938, lng: 139.7034 },
+                        { name: "Shibuya", lat: 35.6618, lng: 139.7041 },
+                        { name: "Setagaya", lat: 35.6467, lng: 139.6530 }
+                    ]},
+                    { name: "Berlin", region: "Berlin", country: "Germany", lat: 52.5200, lng: 13.4050, count: 20, subLocations: [
+                        { name: "Mitte", lat: 52.5203, lng: 13.4094 },
+                        { name: "Kreuzberg", lat: 52.4986, lng: 13.4036 },
+                        { name: "Charlottenburg", lat: 52.5167, lng: 13.3041 }
+                    ]},
+                    { name: "Paris", region: "Île-de-France", country: "France", lat: 48.8566, lng: 2.3522, count: 22, subLocations: [
+                        { name: "Montmartre", lat: 48.8867, lng: 2.3431 },
+                        { name: "La Défense", lat: 48.8910, lng: 2.2417 },
+                        { name: "Le Marais", lat: 48.8589, lng: 2.3622 }
+                    ]},
+                    { name: "Auckland", region: "Auckland", country: "New Zealand", lat: -36.8485, lng: 174.7633, count: 18, subLocations: [
+                        { name: "North Shore", lat: -36.7917, lng: 174.7752 },
+                        { name: "Manukau", lat: -36.9850, lng: 174.8850 },
+                        { name: "Waitakere", lat: -36.8524, lng: 174.5430 }
+                    ]},
+                    { name: "Singapore", region: "Singapore", country: "Singapore", lat: 1.3521, lng: 103.8198, count: 20, subLocations: [
+                        { name: "Jurong East", lat: 1.3331, lng: 103.7436 },
+                        { name: "Woodlands", lat: 1.4360, lng: 103.7865 },
+                        { name: "Tampines", lat: 1.3541, lng: 103.9450 }
+                    ]},
+                    { name: "Hong Kong", region: "Hong Kong", country: "Hong Kong", lat: 22.3193, lng: 114.1694, count: 18, subLocations: [
+                        { name: "Tsim Sha Tsui", lat: 22.2973, lng: 114.1722 },
+                        { name: "Sha Tin", lat: 22.3773, lng: 114.1969 },
+                        { name: "Kowloon", lat: 22.3186, lng: 114.1796 }
+                    ]},
+                    { name: "Rio de Janeiro", region: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lng: -43.1729, count: 20, subLocations: [
+                        { name: "Copacabana", lat: -22.9711, lng: -43.1822 },
+                        { name: "Ipanema", lat: -22.9836, lng: -43.2066 },
+                        { name: "Barra da Tijuca", lat: -23.0000, lng: -43.3650 }
+                    ]},
+                    { name: "Cape Town", region: "Western Cape", country: "South Africa", lat: -33.9249, lng: 18.4241, count: 15, subLocations: [
+                        { name: "Sea Point", lat: -33.9121, lng: 18.3872 },
+                        { name: "Bellville", lat: -33.8989, lng: 18.6298 },
+                        { name: "Stellenbosch", lat: -33.9321, lng: 18.8602 }
+                    ]}
+                ];
+
+                var firstNames = ["Alex","Sam","Taylor","Jordan","Casey","Riley","Morgan","Avery","Jamie","Drew","Quinn","Hayden","Elliot","Reese","Skyler","Rowan","Parker","Finley","Remy","Sutton","Blake","Charlie","Dakota","Emerson","Frankie"];
+                var lastNames = ["Smith","Johnson","Brown","Jones","Miller","Davis","Garcia","Rodriguez","Wilson","Martinez","Anderson","Taylor","Thomas","Hernandez","Moore","Martin","Jackson","Thompson","White","Lopez","Lee","Gonzalez","Harris","Clark","Lewis"];
+
+                var contacts = [];
+                
+                seedLocations.forEach(function(loc) {
+                    for (var i = 0; i < loc.count; i++) {
+                        var scouter = scouters[Math.floor(Math.random() * scouters.length)].name;
+                        var firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                        var lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                        var jitter = Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 14);
+                        var sub = (loc.subLocations && loc.subLocations.length) ? loc.subLocations[Math.floor(Math.random() * loc.subLocations.length)] : null;
+                        var cityName = sub ? sub.name : loc.name;
+                        var lat = sub ? sub.lat : loc.lat;
+                        var lng = sub ? sub.lng : loc.lng;
+                        const label = `${cityName}, ${loc.region}, ${loc.country}`;
+                        contacts.push({
+                            scouter: scouter,
+                            country: loc.country,
+                            region: loc.region,
+                            city: cityName,
+                            location: label,
+                            locationName: label,
+                            locationNameLocal: label,
+                            locationNameEn: label,
+                            lat: lat,
+                            lng: lng,
+                            jid: firstName + " " + lastName,
+                            date: new Date(now - jitter)
+                        });
+                    }
+                });
+
+                await db.contacts.bulkAdd(contacts);
+                console.log("Added " + contacts.length + " test contacts");
+            }
+
+            // Clear all data function
+            async function clearAllData() {
+                await db.contacts.clear();
+                console.log("All contacts cleared");
+            }
+
+            // Seed button click handler
+            $(document).on('click', '#seedBtn', async function(e) {
+                $('#seedBtn').prop('disabled', true);
+                $('#seedBtn').text('Seeding...');
+                try {
+                    await seedTestData();
+                    updateLogs();
+                    updateCharts();
+                    alert('Test data seeded successfully! Check the map to see the gradient.');
+                } catch (error) {
+                    console.error('Error seeding data:', error);
+                    alert('Error seeding data: ' + error.message);
+                } finally {
+                    $('#seedBtn').prop('disabled', false);
+                    $('#seedBtn').text('Seed Test Data');
+                }
+            });
+
+            // Clear button click handler
+            $(document).on('click', '#clearBtn', async function(e) {
+                if (!confirm('Are you sure you want to clear all contacts? This cannot be undone.')) {
+                    return;
+                }
+                $('#clearBtn').prop('disabled', true);
+                $('#clearBtn').text('Clearing...');
+                try {
+                    await clearAllData();
+                    updateLogs();
+                    updateCharts();
+                    alert('All data cleared successfully!');
+                } catch (error) {
+                    console.error('Error clearing data:', error);
+                    alert('Error clearing data: ' + error.message);
+                } finally {
+                    $('#clearBtn').prop('disabled', false);
+                    $('#clearBtn').text('Clear Data');
+                }
+            });
+
+            // ===== SETTINGS FUNCTIONALITY =====
+            
+            // Load settings from localStorage
+            function loadSettings() {
+                const savedGradient = localStorage.getItem('mapGradient');
+                const savedBackground = localStorage.getItem('backgroundTheme');
+                const savedFontSize = localStorage.getItem('fontSize');
+                const savedHighContrast = localStorage.getItem('highContrast');
+                const savedAutoRefresh = localStorage.getItem('autoRefresh');
+
+                if (savedGradient) {
+                    currentGradient = savedGradient;
+                    $('#mapGradient').val(savedGradient);
+                }
+                if (savedBackground) {
+                    currentBackground = savedBackground;
+                    $('#backgroundTheme').val(savedBackground);
+                    applyBackground(savedBackground);
+                }
+                if (savedFontSize) {
+                    $('#fontSize').val(savedFontSize);
+                    applyFontSize(savedFontSize);
+                }
+                if (savedHighContrast) {
+                    $('#highContrast').val(savedHighContrast);
+                    applyHighContrast(savedHighContrast);
+                }
+                if (savedAutoRefresh) {
+                    $('#autoRefresh').val(savedAutoRefresh);
+                    setupAutoRefresh(savedAutoRefresh);
+                }
+                const savedMarkerStyle = localStorage.getItem('markerStyle');
+                if (savedMarkerStyle) {
+                    markerStyle = savedMarkerStyle;
+                    $('#markerStyle').val(savedMarkerStyle);
+                }
+                const savedBasemapLanguage = localStorage.getItem('basemapLanguage');
+                if (savedBasemapLanguage) {
+                    basemapLanguage = savedBasemapLanguage;
+                    $('#basemapLanguage').val(savedBasemapLanguage);
+                }
+
+                updateGradientPreview(currentGradient);
+            }
+
+            // Update gradient preview
+            function updateGradientPreview(gradientKey) {
+                const colors = gradients[gradientKey];
+                const preview = $('#gradientPreview');
+                preview.css('background', `linear-gradient(to right, ${colors[0]}, ${colors[1]}, ${colors[2]})`);
+            }
+
+            // Apply background theme
+            function applyBackground(theme) {
+                $('body').css('background', backgrounds[theme]);
+            }
+
+            // Apply font size
+            function applyFontSize(size) {
+                $('body').removeClass('font-small font-medium font-large font-xlarge');
+                if (size !== 'medium') {
+                    $('body').addClass('font-' + size);
+                }
+            }
+
+            // Apply high contrast
+            function applyHighContrast(mode) {
+                if (mode === 'on') {
+                    $('body').addClass('high-contrast');
+                } else {
+                    $('body').removeClass('high-contrast');
+                }
+            }
+
+            // Auto-refresh interval
+            let autoRefreshInterval = null;
+            function setupAutoRefresh(seconds) {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                
+                if (seconds !== 'off') {
+                    const ms = parseInt(seconds) * 1000;
+                    autoRefreshInterval = setInterval(function() {
+                        updateCharts();
+                    }, ms);
+                }
+            }
+
+            // Settings modal controls
+            $('#settingsIcon').click(function() {
+                $('#settingsModal').fadeIn(300);
+            });
+
+            $('#settingsClose').click(function() {
+                $('#settingsModal').fadeOut(300);
+            });
+
+            // Close modal when clicking outside
+            $('#settingsModal').click(function(e) {
+                if (e.target.id === 'settingsModal') {
+                    $('#settingsModal').fadeOut(300);
+                }
+            });
+
+            // Map gradient change
+            $('#mapGradient').change(function() {
+                currentGradient = $(this).val();
+                localStorage.setItem('mapGradient', currentGradient);
+                updateGradientPreview(currentGradient);
+                updateCharts();
+            });
+
+            // Background theme change
+            $('#backgroundTheme').change(function() {
+                currentBackground = $(this).val();
+                localStorage.setItem('backgroundTheme', currentBackground);
+                applyBackground(currentBackground);
+            });
+
+            // Font size change
+            $('#fontSize').change(function() {
+                const size = $(this).val();
+                localStorage.setItem('fontSize', size);
+                applyFontSize(size);
+            });
+
+            // High contrast change
+            $('#highContrast').change(function() {
+                const mode = $(this).val();
+                localStorage.setItem('highContrast', mode);
+                applyHighContrast(mode);
+            });
+
+            // Auto-refresh change
+            $('#autoRefresh').change(function() {
+                const seconds = $(this).val();
+                localStorage.setItem('autoRefresh', seconds);
+                setupAutoRefresh(seconds);
+            });
+
+            // Marker style change
+            $('#markerStyle').change(function() {
+                markerStyle = $(this).val();
+                localStorage.setItem('markerStyle', markerStyle);
+                if ($('#pinMap').is(':visible')) { updatePinMap(); }
+            });
+
+            // Basemap label language change
+            $('#basemapLanguage').change(function() {
+                basemapLanguage = $(this).val();
+                localStorage.setItem('basemapLanguage', basemapLanguage);
+                // Apply immediately if pin map exists
+                if (typeof applyBasemap === 'function') {
+                    applyBasemap();
+                }
+            });
+
+            // Load settings on page load
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
